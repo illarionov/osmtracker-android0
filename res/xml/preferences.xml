@@ -8,15 +8,75 @@
 	<com.android.internal.preference.YesNoPreference android:key="osm.oauth.clear-data"
 	    android:title="@string/prefs_osm_clear_oauth_data" android:summary="@string/prefs_osm_clear_oauth_data_summary"
 	    android:dialogMessage="@string/prefs_osm_clear_oauth_data_dialog" android:dialogIcon="@android:drawable/ic_dialog_alert" />
-	
+
 	<PreferenceCategory android:title="@string/prefs_gps">
-		<Preference android:summary="@string/prefs_gps_os_settings_summary"
-			android:title="@string/prefs_gps_os_settings" android:key="gps.ossettings"></Preference>
+
+	    <PreferenceScreen android:title="@string/prefs_gps_receiver" >
+
+	        <ListPreference
+	            android:key="gps.interface"
+	            android:title="@string/prefs_gps_inteface"
+	            />
+
+	        <PreferenceCategory
+	            android:key="gps.builtin.category"
+	            android:title="@string/prefs_gps_inteface_builtin">
+				<Preference
+				    android:summary="@string/prefs_gps_os_settings_summary"
+					android:title="@string/prefs_gps_os_settings"
+					android:key="gps.ossettings"
+					/>
+				<ListPreference
+		            android:key="gps.preferred.location.provider"
+				    android:title="@string/prefs_preferred_location_provider"
+				    android:summary="@string/prefs_preferred_location_provider_summary"
+				    android:defaultValue="gps"
+				    />
+			</PreferenceCategory>
+
+			<PreferenceCategory
+			    android:key="gps.bluetooth.category"
+			    android:title="@string/prefs_gps_inteface_bluetooth">
+
+			    <Preference
+			        android:title="@string/prefs_gps_bluetooth_os_settings"
+			        android:summary="@string/prefs_gps_bluetooth_os_settings_summary"
+			        android:key="gps.bluetooth.ossettings"
+			        />
+			    <ListPreference
+			        android:key="gps.bluetooth.receiver"
+			        android:title="@string/prefs_gps_bluetooth_receiver"
+			        />
+			</PreferenceCategory>
+
+			<PreferenceCategory
+			    android:key="gps.usb.category"
+			    android:title="@string/prefs_gps_inteface_usb">
+
+			    <ListPreference
+			        android:key="gps.usb.receiver"
+			        android:title="@string/prefs_gps_usb_receiver"
+			        />
+
+			    <ListPreference
+			        android:key="gps.usb.baudrate"
+			        android:defaultValue="4800"
+				    android:title="@string/prefs_gps_usb_baudrate"
+				    android:entryValues="@array/prefs_gps_usb_baudrate"
+					android:entries="@array/prefs_gps_usb_baudrate"
+					/>
+			</PreferenceCategory>
+
+		</PreferenceScreen>
+
 		<CheckBoxPreference android:key="gps.checkstartup"
 			android:title="@string/prefs_check_gps_startup" android:summary="@string/prefs_check_gps_startup_summary"
 			android:defaultValue="true"></CheckBoxPreference>
 		<CheckBoxPreference android:key="gps.ignoreclock"
 			android:title="@string/prefs_gps_ignore_clock" android:summary="@string/prefs_gps_ignore_clock_summary"
+			android:defaultValue="false"></CheckBoxPreference>
+		<CheckBoxPreference android:key="gps.log.raw.data"
+			android:title="@string/prefs_gps_log_raw_data" android:summary="@string/prefs_gps_log_raw_data_summary"
 			android:defaultValue="false"></CheckBoxPreference>
 		<EditTextPreference android:key="gps.logging.interval"
 			android:title="@string/prefs_gps_logging_interval" android:summary="@string/prefs_gps_logging_interval_summary"

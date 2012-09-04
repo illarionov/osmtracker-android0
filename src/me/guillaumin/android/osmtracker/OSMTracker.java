@@ -1,5 +1,7 @@
 package me.guillaumin.android.osmtracker;
 
+import me.guillaumin.android.osmtracker.gps.ReceiverInterfaces;
+import android.location.LocationManager;
 
 /**
  * Constants & app-wide variables.
@@ -18,10 +20,17 @@ public class OSMTracker {
 		public final static String KEY_STORAGE_DIR = "logging.storage.dir";
 		public final static String KEY_VOICEREC_DURATION = "voicerec.duration";
 		public final static String KEY_UI_THEME = "ui.theme";
+		public final static String KEY_GPS_INTERFACE = "gps.interface";
 		public final static String KEY_GPS_OSSETTINGS = "gps.ossettings";
+		public final static String KEY_GPS_BLUETOOTH_OSSETTINGS = "gps.bluetooth.ossettings";
+		public final static String KEY_GPS_BLUETOOTH_RECEIVER = "gps.bluetooth.receiver";
+		public final static String KEY_GPS_BUILTIN_RECEIVER = "gps.preferred.location.provider";
+		public final static String KEY_GPS_USB_RECEIVER = "gps.usb.receiver";
+		public final static String KEY_GPS_USB_BAUDRATE = "gps.usb.baudrate";
 		public final static String KEY_GPS_CHECKSTARTUP = "gps.checkstartup";
 		public final static String KEY_GPS_IGNORE_CLOCK = "gps.ignoreclock";
 		public final static String KEY_GPS_LOGGING_INTERVAL = "gps.logging.interval";
+		public final static String KEY_GPS_LOG_RAW_DATA = "gps.log.raw.data";
 		public final static String KEY_OUTPUT_FILENAME = "gpx.filename";
 		public final static String KEY_OUTPUT_ACCURACY = "gpx.accuracy";
 		public final static String KEY_OUTPUT_GPX_HDOP_APPROXIMATION = "gpx.hdop.approximation";
@@ -39,9 +48,13 @@ public class OSMTracker {
 		public final static String VAL_STORAGE_DIR = "/osmtracker";
 		public final static String VAL_VOICEREC_DURATION = "2";
 		public final static String VAL_UI_THEME = "me.guillaumin.android.osmtracker:style/DefaultTheme";
+		public final static String VAL_GPS_INTERFACE = ReceiverInterfaces.BUILTIN.name();
+		public final static String VAL_GPS_BUILTIN_RECEIVER = LocationManager.GPS_PROVIDER;
+		public final static String VAL_GPS_USB_BAUDRATE = "4800";
 		public final static boolean VAL_GPS_CHECKSTARTUP = true;
 		public final static boolean VAL_GPS_IGNORE_CLOCK = false;
 		public final static String VAL_GPS_LOGGING_INTERVAL = "0";
+		public final static boolean VAL_GPS_LOG_RAW_DATA = false;
 		
 		public final static String VAL_OUTPUT_FILENAME_NAME = "name";
 		public final static String VAL_OUTPUT_FILENAME_NAME_DATE = "name_date";
@@ -126,7 +139,9 @@ public class OSMTracker {
 	 * time (in ms) we use to handle a key press as a long press
 	 */
 	public final static long LONG_PRESS_TIME = 1000;
-	
+
+	public static final boolean DEBUG =  false /* BuildConfig.DEBUG */;
+
 	/** Device string identifiers */
 	public static final class Devices {
 		public static final String NEXUS_S = "Nexus S";

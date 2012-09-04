@@ -8,8 +8,14 @@
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.BLUETOOTH" />
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-			
+
+	<uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+	<uses-feature android:name="android.hardware.usb.host" android:required="false" />
+	<uses-feature android:name="android.hardware.microphone" android:required="false" />
+
 	<application android:label="@string/app_name" android:description="@string/app_description" android:icon="@drawable/icon_48x48">
 
 		<activity android:name=".activity.TrackManager" android:label="@string/app_name">
@@ -18,8 +24,15 @@
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
-		
-		<activity android:name=".activity.TrackLogger" android:label="@string/tracklogger" android:launchMode="singleTop"/>
+
+		<activity android:name=".activity.TrackLogger" android:label="@string/tracklogger" android:launchMode="singleTop">
+		   <intent-filter>
+		      <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+		   </intent-filter>
+		   <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+		      android:resource="@xml/usb_device_filter" />
+		</activity>
+
 		<activity android:name=".activity.Preferences" android:label="@string/prefs" />
 		<activity android:name=".activity.WaypointList" android:label="@string/wplist" />
 		<activity android:name=".activity.TrackDetail" android:label="@string/trackdetail" />

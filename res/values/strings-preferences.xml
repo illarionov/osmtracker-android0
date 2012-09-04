@@ -9,6 +9,9 @@
 	<string name="prefs_gps_os_settings">GPS settings</string>
 	<string name="prefs_gps_os_settings_summary">Display system GPS settings screen</string>
 
+	<string name="prefs_preferred_location_provider">Preferred provider</string>
+	<string name="prefs_preferred_location_provider_summary">Select the preferred location provider</string>
+
 	<string name="prefs_check_gps_startup">Check GPS at startup</string>
 	<string name="prefs_check_gps_startup_summary">Check if GPS is disabled at startup, and offer to enable it</string>
 
@@ -18,6 +21,20 @@
 	<string name="prefs_gps_logging_interval">GPS logging interval</string>
 	<string name="prefs_gps_logging_interval_summary">Use 0 for the shortest possible (affects battery life)</string>
 	<string name="prefs_gps_logging_interval_seconds">seconds</string>
+
+	<string name="prefs_gps_receiver">GPS receiver</string>
+	<string name="prefs_gps_inteface">GPS receiver interface</string>
+	<string name="prefs_gps_inteface_builtin">Built-in GPS</string>
+	<string name="prefs_gps_inteface_bluetooth">Blueooth</string>
+	<string name="prefs_gps_bluetooth_os_settings">Bluetooth system settings</string>
+	<string name="prefs_gps_bluetooth_os_settings_summary">Display system Bluetooth settings screen</string>
+	<string name="prefs_gps_bluetooth_receiver">Select USB GPS</string>
+	<string name="prefs_gps_inteface_usb">USB</string>
+	<string name="prefs_gps_usb_receiver">Select USB GPS</string>
+	<string name="prefs_gps_usb_baudrate">Serial Baud Rate</string>
+
+	<string name="prefs_gps_log_raw_data">Log raw data</string>
+	<string name="prefs_gps_log_raw_data_summary">Record raw GPS data to SD card. May not work on some phones</string>
 
 	<string name="prefs_ui">User interface</string>
 	

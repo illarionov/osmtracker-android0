@@ -17,19 +17,26 @@ import me.guillaumin.android.osmtracker.view.VoiceRecDialog;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
+import android.hardware.usb.UsbManager;
+import android.location.GpsStatus;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -104,6 +111,11 @@ public class TrackLogger extends Activity {
 	 */
 	private ServiceConnection gpsLoggerConnection = new GPSLoggerServiceConnection(this);
 	
+	/**
+	 * Handles notifications from GPS logger service
+	 */
+	private final GPSLoggerReceiver gpsLoggerReceiver = new GPSLoggerReceiver();
+
 	/**
 	 * Keeps the SharedPreferences
 	 */
@@ -213,6 +225,9 @@ public class TrackLogger extends Activity {
 		// Register GPS status update for upper controls
 		((GpsStatusRecord) findViewById(R.id.gpsStatus)).requestLocationUpdates(true);
 
+        //Register receiver of notifications from GPS logger service
+		gpsLoggerReceiver.register();
+
 		// Start GPS Logger service
 		startService(gpsLoggerServiceIntent);
 
@@ -226,12 +241,22 @@ public class TrackLogger extends Activity {
 			Toast.makeText(this, R.string.tracklogger_waiting_gps, Toast.LENGTH_LONG).show();
 		}
 
+		Intent newIntent = this.getIntent();
+		if ((newIntent.getAction() != null)
+				&& newIntent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
+			if (gpsLogger != null) gpsLogger.onUsbDeviceAttached(newIntent);
+		}
+
 		super.onResume();
 	}
 
 	private void checkGPSProvider() {
 		LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
-		if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+		String provider = prefs.getString(
+				OSMTracker.Preferences.KEY_GPS_BUILTIN_RECEIVER,
+				OSMTracker.Preferences.VAL_GPS_BUILTIN_RECEIVER
+				);
+		if (!lm.isProviderEnabled(provider)) {
 			// GPS isn't enabled. Offer user to go enable it
 			new AlertDialog.Builder(this)
 					.setTitle(R.string.tracklogger_gps_disabled)
@@ -254,9 +279,11 @@ public class TrackLogger extends Activity {
 
 	@Override
 	protected void onPause() {
-		
+
 		// Un-register GPS status update for upper controls
 		((GpsStatusRecord) findViewById(R.id.gpsStatus)).requestLocationUpdates(false);
+
+		gpsLoggerReceiver.unregister();
 
 		if (gpsLogger != null) {
 			if (!gpsLogger.isTracking()) {
@@ -295,7 +322,8 @@ public class TrackLogger extends Activity {
 	 */
 	public void onGpsEnabled() {
 		// Buttons can be enabled
-		if (gpsLogger != null && gpsLogger.isTracking()) {
+		if ((gpsLogger != null)
+				&& (gpsLogger.getCurrentLocation() != null)) {
 			setEnabledActionButtons(true);
 		}
 	}
@@ -525,19 +553,88 @@ public class TrackLogger extends Activity {
 		}
 		super.onPrepareDialog(id, dialog);
 	}
-	
+
 	@Override
 	protected void onNewIntent(Intent newIntent) {
 		if (newIntent.getExtras() != null && newIntent.getExtras().containsKey(Schema.COL_TRACK_ID)) {
 			currentTrackId = newIntent.getExtras().getLong(Schema.COL_TRACK_ID);
-			setIntent(newIntent);
 		}
+
+		if ((newIntent.getAction() != null)
+				&& newIntent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
+			if (gpsLogger != null) gpsLogger.onUsbDeviceAttached(newIntent);
+		}
+
+		setIntent(newIntent);
 		super.onNewIntent(newIntent);
 	}
 
 	public long getCurrentTrackId() {
 		return this.currentTrackId;
 	}
-	
+
+	private class GPSLoggerReceiver extends BroadcastReceiver {
+
+		private IntentFilter createIntentFilter() {
+			IntentFilter filter = new IntentFilter();
+			filter.addAction(GPSLogger.INTENT_PROVIDER_ENABLED);
+			filter.addAction(GPSLogger.INTENT_PROVIDER_DISABLED);
+			filter.addAction(GPSLogger.INTENT_PROVIDER_STATUS_CHANGED);
+			filter.addAction(GPSLogger.INTENT_GPS_STATUS_CHANGED);
+			filter.addAction(GPSLogger.INTENT_LOCATION_CHANGED);
+		    return filter;
+		}
+
+		public void register() {
+			LocalBroadcastManager.getInstance(TrackLogger.this
+					).registerReceiver(this, this.createIntentFilter());
+		}
+
+		public void unregister() {
+			LocalBroadcastManager.getInstance(TrackLogger.this
+					).unregisterReceiver(this);
+		}
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+
+			Log.v(TAG, "Received local intent " + action);
+
+			if (action.equals(GPSLogger.INTENT_PROVIDER_ENABLED)) {
+				onGpsEnabled();
+			}else if (action.equals(GPSLogger.INTENT_LOCATION_CHANGED)) {
+				onGpsEnabled();
+			}else if (action.equals(GPSLogger.INTENT_PROVIDER_DISABLED)) {
+				onGpsDisabled();
+			}else if (action.equals(GPSLogger.INTENT_PROVIDER_STATUS_CHANGED)) {
+				int newStatus = intent.getIntExtra("status", -1);
+				switch (newStatus) {
+				case LocationProvider.OUT_OF_SERVICE:
+				case LocationProvider.TEMPORARILY_UNAVAILABLE:
+					onGpsDisabled();
+					break;
+				case LocationProvider.AVAILABLE:
+					onGpsEnabled();
+					break;
+				default:
+					Log.w(TAG, "Unknown status " + newStatus + "on INTENT_STATUS_CHANGED");
+				}
+			}else if (action.equals(GPSLogger.INTENT_GPS_STATUS_CHANGED)) {
+				int newStatus = intent.getIntExtra("status", -1);
+				switch (newStatus) {
+				case GpsStatus.GPS_EVENT_FIRST_FIX:
+					onGpsEnabled();
+					break;
+				case GpsStatus.GPS_EVENT_STARTED:
+					onGpsEnabled();
+					break;
+				case GpsStatus.GPS_EVENT_STOPPED:
+					onGpsDisabled();
+					break;
+				}
+			}
+		}
+	}
 
 }

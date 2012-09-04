@@ -9,9 +9,14 @@
   <string name="prefs_check_gps_startup_summary">Проверять статус GPS при запуске, предлагать включить</string>
   <string name="prefs_gps_ignore_clock">Игнорировать время GPS</string>
   <string name="prefs_gps_ignore_clock_summary">Игнорировать время GPS и использовать время телефона для временных меток</string>
+  <string name="prefs_gps_inteface_builtin">Встроенный GPS</string>
+  <string name="prefs_gps_inteface_bluetooth">Bluetooth</string>
+  <string name="prefs_gps_inteface_usb">USB</string>
   <string name="prefs_gps_logging_interval">Интервал сохранения GPS</string>
   <string name="prefs_gps_logging_interval_summary">Установите 0 для минимально возможного (ускоряет разряд батереи)</string>
   <string name="prefs_gps_logging_interval_seconds">секунд(ы)</string>
+  <string name="prefs_gps_log_raw_data">Вести журнал первичных данных</string>
+  <string name="prefs_gps_log_raw_data_summary">Сохранять первичные данные GPS на SD-карту. Не работает на некоторых телефонах.</string>
   <string name="prefs_ui">Интерфейс</string>
   <string name="prefs_ui_buttons_layout">Расположение кнопок</string>
   <string name="prefs_ui_buttons_layout_summary">Выбрать вариант расположения кнопок (См. документацию)</string>
