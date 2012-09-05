@@ -61,6 +61,11 @@ public class GPSLogger extends Service implements
 	public final static String INTENT_PROVIDER_ENABLED =  "Gpslogger.intent.PROVIDER_ENABLED";
 
 	/**
+	 * Tracking status changed
+	 */
+	public final static String INTENT_TRACKING_STATUS_CHANGED = "Gpslogger.intent.TRACKING_STATUS_CHANGED";
+	
+	/**
 	 *  Status of GPS provider  changed
 	 */
 	public final static String INTENT_PROVIDER_STATUS_CHANGED =  "Gpslogger.intent.PROVIDER_STATUS_CHANGED";
@@ -245,7 +250,6 @@ public class GPSLogger extends Service implements
 		public void onProviderDisabled(String provider) {
 			Intent intent = new Intent(GPSLogger.INTENT_PROVIDER_DISABLED);
 			localBroadcastSender.sendBroadcast(intent);
-			locationAvailable = false;
 		}
 
 		@Override
@@ -503,7 +507,7 @@ public class GPSLogger extends Service implements
 	public boolean onUnbind(Intent intent) {
 		// If we aren't currently tracking we can
 		// stop ourselves
-		if (! isTracking ) {
+		if ((! isTracking) && (this.currentTrackId < 0)) {
 			Log.v(TAG, "Service self-stopping");
 			stopSelf();
 		}
@@ -567,7 +571,7 @@ public class GPSLogger extends Service implements
 	@Override
 	public void onDestroy() {
 		Log.v(TAG, "Service onDestroy()");
-		if (isTracking) {
+		if (isTracking || (this.currentTrackId >= 0)) {
 			// If we're currently tracking, save user data.
 			stopTrackingAndSave();
 		}
@@ -591,40 +595,60 @@ public class GPSLogger extends Service implements
 	 */
 	private boolean startTracking(long trackId) {
 		currentTrackId = trackId;
-		Log.v(TAG, "Starting track logging for track #" + trackId);
 
 		if (gpsReceiver == null) {
 			if (!activateGpsReceiver()) {
 				Log.e(TAG, "Unable to activate GPS receiver");
+				return false;
 			}
 		}
-		assert(gpsReceiver != null);
+
+		if (isTracking) return true;
+
+		Log.v(TAG, "Starting track logging for track #" + trackId);
+
+		locationAvailable = false;
 
 		// Start NMEA logging
 		if (isRawDataLogEnabled)
 			rawDataLogger.activate();
 
 		// Lock CPU power
-		// wakeLock.acquire();
+		wakeLock.acquire();
 
+		setIsTracking(true);
 		NotificationManager nmgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		nmgr.notify(NOTIFICATION_ID, getNotification());
-		isTracking = true;
 
 		return isTracking;
+	}
+
+	private void setIsTracking(boolean isTracking) {
+		boolean isChanged = (this.isTracking != isTracking);
+		this.isTracking = isTracking;
+		if (isChanged) {
+			Intent intent = new Intent(GPSLogger.INTENT_TRACKING_STATUS_CHANGED);
+			intent.putExtra("isTracking", isTracking);
+			localBroadcastSender.sendBroadcast(intent);
+		}
 	}
 
 	/**
 	 * Stops GPS Logging
 	 */
 	private void stopTrackingAndSave() {
-		isTracking = false;
-		locationAvailable = false;
-		dataHelper.stopTracking(currentTrackId);
 
+		if (!isTracking) return;
+
+		setIsTracking(false);
+		locationAvailable = false;
 		rawDataLogger.deactivate();
-		// wakeLock.release();
-		currentTrackId = -1;
+		wakeLock.release();
+
+		if (currentTrackId > 0) {
+			dataHelper.stopTracking(currentTrackId);
+			currentTrackId = -1;
+		}
 		this.stopSelf();
 	}
 

@@ -34,7 +34,8 @@ public class GPSLoggerServiceConnection implements ServiceConnection {
 
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder service) {
-		
+		boolean isTracking;
+
 		activity.setGpsLogger( ((GPSLogger.GPSLoggerBinder) service).getService());
 
 		// Update record status regarding of current tracking state

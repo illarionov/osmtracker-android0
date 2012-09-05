@@ -111,6 +111,7 @@ public class GpsStatusRecord extends LinearLayout {
 			filter.addAction(GPSLogger.INTENT_PROVIDER_STATUS_CHANGED);
 			filter.addAction(GPSLogger.INTENT_GPS_STATUS_CHANGED);
 			filter.addAction(GPSLogger.INTENT_LOCATION_CHANGED);
+			filter.addAction(GPSLogger.INTENT_TRACKING_STATUS_CHANGED);
 		    return filter;
 		}
 
@@ -224,6 +225,9 @@ public class GpsStatusRecord extends LinearLayout {
 					if (satCount >= 0)
 						imgSatIndicator.setImageResource(satCount2ResourceId(satCount));
 				}
+			} else if (action.equals(GPSLogger.INTENT_TRACKING_STATUS_CHANGED)) {
+				boolean isTracked = intent.getBooleanExtra("isTracking", false);
+				manageRecordingIndicator(isTracked);
 			}
 		}
 	}

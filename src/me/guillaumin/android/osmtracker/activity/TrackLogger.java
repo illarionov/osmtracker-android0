@@ -7,6 +7,7 @@ import me.guillaumin.android.osmtracker.OSMTracker;
 import me.guillaumin.android.osmtracker.R;
 import me.guillaumin.android.osmtracker.db.DataHelper;
 import me.guillaumin.android.osmtracker.db.TrackContentProvider.Schema;
+import me.guillaumin.android.osmtracker.gps.ReceiverInterfaces;
 import me.guillaumin.android.osmtracker.layout.GpsStatusRecord;
 import me.guillaumin.android.osmtracker.layout.UserDefinedLayout;
 import me.guillaumin.android.osmtracker.service.gps.GPSLogger;
@@ -24,7 +25,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.hardware.usb.UsbManager;
 import android.location.GpsStatus;
@@ -74,6 +74,11 @@ public class TrackLogger extends Activity {
 	 */
 	public static final String STATE_BUTTONS_ENABLED = "buttonsEnabled";
 
+	/**
+	 * Bundle state checkGPSFlag
+	 */
+	public static final String STATE_CHECK_GPS_FLAG = "checkGPSFlag";
+	
 	/**
 	 * GPS Logger service, to receive events and be able to update UI.
 	 */
@@ -165,6 +170,7 @@ public class TrackLogger extends Activity {
 		// we'll restore previous button state, GPSStatusRecord will enable all buttons, as soon as there's a gps fix
 		if(savedInstanceState != null){
 			buttonsEnabled = savedInstanceState.getBoolean(STATE_BUTTONS_ENABLED, false);
+			checkGPSFlag = savedInstanceState.getBoolean(STATE_CHECK_GPS_FLAG, true);
 		}
 	}
 
@@ -214,13 +220,9 @@ public class TrackLogger extends Activity {
 			Log.e(TAG, "Error while inflating UserDefinedLayout", e);
 			Toast.makeText(this, R.string.error_userlayout_parsing, Toast.LENGTH_SHORT).show();
 		}
-		
+
 		// Check GPS status
-		if (checkGPSFlag
-				&& prefs.getBoolean(OSMTracker.Preferences.KEY_GPS_CHECKSTARTUP,
-						OSMTracker.Preferences.VAL_GPS_CHECKSTARTUP)) {
-			checkGPSProvider();
-		}
+		checkGPSProvider();
 
 		// Register GPS status update for upper controls
 		((GpsStatusRecord) findViewById(R.id.gpsStatus)).requestLocationUpdates(true);
@@ -251,6 +253,28 @@ public class TrackLogger extends Activity {
 	}
 
 	private void checkGPSProvider() {
+
+		if (!checkGPSFlag) {
+			return;
+		}
+
+		if ( ! prefs.getBoolean(OSMTracker.Preferences.KEY_GPS_CHECKSTARTUP,
+						OSMTracker.Preferences.VAL_GPS_CHECKSTARTUP)) {
+			return;
+		}
+
+		ReceiverInterfaces ifaces = ReceiverInterfaces.valueOf(
+				prefs.getString(
+						OSMTracker.Preferences.KEY_GPS_INTERFACE,
+						OSMTracker.Preferences.VAL_GPS_INTERFACE
+						)
+				);
+
+		/* TODO: Offer user to enable Bluetooth and USB GPS */
+		if (ifaces != ReceiverInterfaces.BUILTIN) {
+			return;
+		}
+
 		LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
 		String provider = prefs.getString(
 				OSMTracker.Preferences.KEY_GPS_BUILTIN_RECEIVER,
@@ -305,6 +329,7 @@ public class TrackLogger extends Activity {
 			outState.putBoolean(STATE_IS_TRACKING, gpsLogger.isTracking());
 		}
 		outState.putBoolean(STATE_BUTTONS_ENABLED, buttonsEnabled);
+		outState.putBoolean(STATE_CHECK_GPS_FLAG, checkGPSFlag);
 
 		super.onSaveInstanceState(outState);
 	}
@@ -607,6 +632,7 @@ public class TrackLogger extends Activity {
 				onGpsEnabled();
 			}else if (action.equals(GPSLogger.INTENT_PROVIDER_DISABLED)) {
 				onGpsDisabled();
+				TrackLogger.this.checkGPSFlag = false;
 			}else if (action.equals(GPSLogger.INTENT_PROVIDER_STATUS_CHANGED)) {
 				int newStatus = intent.getIntExtra("status", -1);
 				switch (newStatus) {
