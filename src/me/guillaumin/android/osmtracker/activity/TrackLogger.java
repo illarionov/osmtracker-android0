@@ -8,14 +8,12 @@ import me.guillaumin.android.osmtracker.R;
 import me.guillaumin.android.osmtracker.db.DataHelper;
 import me.guillaumin.android.osmtracker.db.TrackContentProvider.Schema;
 import me.guillaumin.android.osmtracker.gps.ReceiverInterfaces;
-import me.guillaumin.android.osmtracker.layout.GpsStatusRecord;
 import me.guillaumin.android.osmtracker.layout.UserDefinedLayout;
 import me.guillaumin.android.osmtracker.service.gps.GPSLogger;
 import me.guillaumin.android.osmtracker.service.gps.GPSLoggerServiceConnection;
 import me.guillaumin.android.osmtracker.util.ThemeValidator;
 import me.guillaumin.android.osmtracker.view.TextNoteDialog;
 import me.guillaumin.android.osmtracker.view.VoiceRecDialog;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
@@ -36,6 +34,7 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -54,7 +53,7 @@ import android.widget.Toast;
  * @author Nicolas Guillaumin
  * 
  */
-public class TrackLogger extends Activity {
+public class TrackLogger extends FragmentActivity {
 
 	private static final String TAG = TrackLogger.class.getSimpleName();
 
@@ -224,9 +223,6 @@ public class TrackLogger extends Activity {
 		// Check GPS status
 		checkGPSProvider();
 
-		// Register GPS status update for upper controls
-		((GpsStatusRecord) findViewById(R.id.gpsStatus)).requestLocationUpdates(true);
-
         //Register receiver of notifications from GPS logger service
 		gpsLoggerReceiver.register();
 
@@ -303,9 +299,6 @@ public class TrackLogger extends Activity {
 
 	@Override
 	protected void onPause() {
-
-		// Un-register GPS status update for upper controls
-		((GpsStatusRecord) findViewById(R.id.gpsStatus)).requestLocationUpdates(false);
 
 		gpsLoggerReceiver.unregister();
 
@@ -384,7 +377,6 @@ public class TrackLogger extends Activity {
 			if (gpsLogger.isTracking()) {
 				Intent intent = new Intent(OSMTracker.INTENT_STOP_TRACKING);
 				sendBroadcast(intent);
-				((GpsStatusRecord) findViewById(R.id.gpsStatus)).manageRecordingIndicator(false);
 				finish();
 			}		
 			break;

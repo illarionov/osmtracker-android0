@@ -1,4 +1,7 @@
-package me.guillaumin.android.osmtracker.layout;
+/**
+ * 
+ */
+package me.guillaumin.android.osmtracker.activity;
 
 import java.text.DecimalFormat;
 
@@ -14,25 +17,20 @@ import android.location.Location;
 import android.location.LocationProvider;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-/**
- * Layout for the GPS Status image and misc
- * action buttons.
- * 
- * @author Nicolas Guillaumin
- * 
- */
-public class GpsStatusRecord extends LinearLayout {
-	
-	private final static String TAG = GpsStatusRecord.class.getSimpleName();
-	
+
+public class GpsStatusRecordFragment extends Fragment {
+
+	private final static String TAG = GpsStatusRecordFragment.class.getSimpleName();
+
 	/**
 	 * Formatter for accuracy display.
 	 */
@@ -47,7 +45,7 @@ public class GpsStatusRecord extends LinearLayout {
 	/**
 	 * Handles notifications from GPS logger service
 	 */
-	private final GPSLoggerReceiver gpsLoggerReceiver;
+	private final GPSLoggerReceiver gpsLoggerReceiver = new GPSLoggerReceiver();
 
 	/**
 	 * the timestamp of the last GPS fix we used
@@ -62,47 +60,44 @@ public class GpsStatusRecord extends LinearLayout {
 	/**
 	 * the interval (in ms) to log GPS fixes defined in the preferences
 	 */
-	private final long gpsLoggingInterval;
+	private long gpsLoggingInterval;
 
-	public GpsStatusRecord(Context context, AttributeSet attrs) {
-		super(context, attrs);
-		LayoutInflater.from(context).inflate(R.layout.gpsstatus_record, this, true);
+
+	public GpsStatusRecordFragment ()  {}
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onCreate(savedInstanceState);
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
 
 		//read the logging interval from preferences
-		gpsLoggingInterval = Long.parseLong(PreferenceManager.getDefaultSharedPreferences(context).getString(
+		gpsLoggingInterval = Long.parseLong(PreferenceManager.getDefaultSharedPreferences(this.getActivity()).getString(
 				OSMTracker.Preferences.KEY_GPS_LOGGING_INTERVAL, OSMTracker.Preferences.VAL_GPS_LOGGING_INTERVAL)) * 1000;
 
-		 gpsLoggerReceiver = new GPSLoggerReceiver(context);
+		// Inflate the layout for this fragment
+		return inflater.inflate(R.layout.gpsstatus_record, container, false);
+		//return inflater.inflate(R.layout.gpsstatus_record, container, true);
 	}
 
-	public void requestLocationUpdates(boolean request) {
-		if (request) {
-			gpsLoggerReceiver.register();
-		} else {
-			gpsLoggerReceiver.unregister();
-		}
+	@Override
+	public void onResume() {
+		super.onResume();
+		gpsLoggerReceiver.register();
 	}
 
-	/**
-	 * Manages the state of the recording indicator, depending if we're tracking or not.
-	 * @param isTracking true if the indicator must show that we're tracking, otherwise false
-	 */
-	public void manageRecordingIndicator(boolean isTracking) {
-		ImageView recordStatus = (ImageView) findViewById(R.id.gpsstatus_record_animRec);
-		if (isTracking) {
-			recordStatus.setImageResource(R.drawable.record_red);
-		} else {
-			recordStatus.setImageResource(R.drawable.record_grey);
-		}
+	@Override
+	public void onPause() {
+		gpsLoggerReceiver.unregister();
+		super.onPause();
 	}
+
 
 	private class GPSLoggerReceiver extends BroadcastReceiver {
-
-		private Context ctx;
-
-		public GPSLoggerReceiver(Context ctx) {
-			this.ctx = ctx;
-		}
 
 		public IntentFilter createIntentFilter() {
 			IntentFilter filter = new IntentFilter();
@@ -116,12 +111,12 @@ public class GpsStatusRecord extends LinearLayout {
 		}
 
 		public void register() {
-			LocalBroadcastManager.getInstance(ctx
+			LocalBroadcastManager.getInstance(GpsStatusRecordFragment.this.getActivity()
 					).registerReceiver(this, this.createIntentFilter());
 		}
 
 		public void unregister() {
-			LocalBroadcastManager.getInstance(ctx
+			LocalBroadcastManager.getInstance(GpsStatusRecordFragment.this.getActivity()
 					).unregisterReceiver(this);
 		}
 
@@ -140,12 +135,26 @@ public class GpsStatusRecord extends LinearLayout {
 			return getResources().getIdentifier("drawable/sat_indicator_" + nbBars,
 					null, OSMTracker.class.getPackage().getName());
 		}
+		
+		/**
+		 * Manages the state of the recording indicator, depending if we're tracking or not.
+		 * @param isTracking true if the indicator must show that we're tracking, otherwise false
+		 */
+		void manageRecordingIndicator(boolean isTracking) {
+			ImageView recordStatus = (ImageView) GpsStatusRecordFragment.this.getView().findViewById(R.id.gpsstatus_record_animRec);
+			if (isTracking) {
+				recordStatus.setImageResource(R.drawable.record_red);
+			} else {
+				recordStatus.setImageResource(R.drawable.record_grey);
+			}
+		}
+
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			ImageView imgSatIndicator = (ImageView) findViewById(R.id.gpsstatus_record_imgSatIndicator);
-			TextView tvAccuracy = (TextView) findViewById(R.id.gpsstatus_record_tvAccuracy);
+			ImageView imgSatIndicator = (ImageView)  GpsStatusRecordFragment.this.getView().findViewById(R.id.gpsstatus_record_imgSatIndicator);
+			TextView tvAccuracy = (TextView)  getView().findViewById(R.id.gpsstatus_record_tvAccuracy);
 
 			Log.v(TAG, "Received local intent " + action);
 
@@ -231,4 +240,5 @@ public class GpsStatusRecord extends LinearLayout {
 			}
 		}
 	}
+
 }

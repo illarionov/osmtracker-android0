@@ -1,10 +1,8 @@
 package me.guillaumin.android.osmtracker.service.gps;
 
 import me.guillaumin.android.osmtracker.OSMTracker;
-import me.guillaumin.android.osmtracker.R;
 import me.guillaumin.android.osmtracker.activity.TrackLogger;
 import me.guillaumin.android.osmtracker.db.TrackContentProvider.Schema;
-import me.guillaumin.android.osmtracker.layout.GpsStatusRecord;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -38,12 +36,8 @@ public class GPSLoggerServiceConnection implements ServiceConnection {
 
 		activity.setGpsLogger( ((GPSLogger.GPSLoggerBinder) service).getService());
 
-		// Update record status regarding of current tracking state
-		GpsStatusRecord gpsStatusRecord = (GpsStatusRecord) activity.findViewById(R.id.gpsStatus);
-		if (gpsStatusRecord != null) {
-			gpsStatusRecord.manageRecordingIndicator(activity.getGpsLogger().isTracking());
-		}
-		
+		// XXX: Update record status regarding of current tracking state
+
 		// If not already tracking, start tracking
 		if (!activity.getGpsLogger().isTracking()) {
 			activity.setEnabledActionButtons(false);

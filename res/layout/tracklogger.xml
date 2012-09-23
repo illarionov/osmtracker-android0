@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="fill_parent"
-	android:orientation="vertical" android:layout_height="fill_parent">
-	<me.guillaumin.android.osmtracker.layout.GpsStatusRecord
-		android:id="@+id/gpsStatus" android:layout_width="fill_parent"
-		android:layout_height="wrap_content" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
 
-	<LinearLayout android:id="@+id/tracklogger_root" android:layout_width="fill_parent" android:layout_height="fill_parent"></LinearLayout>
+   	<fragment
+        android:id="@+id/gpsStatus"
+        android:name="me.guillaumin.android.osmtracker.activity.GpsStatusRecordFragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        tools:layout="@layout/gpsstatus_record" />
+
+	<LinearLayout
+        android:id="@+id/tracklogger_root"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" />
+
 </LinearLayout>
